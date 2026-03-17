@@ -215,7 +215,14 @@ func ConvertClaudeRequestToCodex(modelName string, inputRawJSON []byte, _ bool) 
 	}
 
 	// Add additional configuration parameters for the Codex API.
-	template, _ = sjson.Set(template, "parallel_tool_calls", true)
+	// Set parallel_tool_calls based on disable_parallel_tool_use parameter.
+	// If disable_parallel_tool_use is provided, use its inverse value.
+	// Otherwise, default to true.
+	parallelToolCalls := true
+	if disableParallelToolUse := rootResult.Get("disable_parallel_tool_use"); disableParallelToolUse.Exists() {
+		parallelToolCalls = !disableParallelToolUse.Bool()
+	}
+	template, _ = sjson.Set(template, "parallel_tool_calls", parallelToolCalls)
 
 	// Convert thinking.budget_tokens to reasoning.effort.
 	reasoningEffort := "medium"
